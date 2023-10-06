@@ -1,0 +1,33 @@
+DELIMITER $$
+
+CREATE PROCEDURE check_class(IN roll INT)
+BEGIN
+    DECLARE curr_marks INT;
+    DECLARE curr_name VARCHAR(20);
+    DECLARE class VARCHAR(20);
+
+    DECLARE EXIT HANDLER FOR NOT FOUND
+    BEGIN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid roll', MYSQL_ERRNO = 1001;
+    END;
+
+    SELECT marks INTO curr_marks FROM stud_marks AS s WHERE s.roll = roll;
+    SELECT name INTO curr_name FROM stud_marks AS s WHERE s.roll = roll;
+
+    IF curr_marks <= 1500 AND curr_marks >= 900 THEN
+        SET class = 'Distinction';
+    ELSEIF curr_marks BETWEEN 989 AND 900 THEN
+        SET class = 'First Class';
+    ELSEIF curr_marks BETWEEN 899 AND 825 THEN
+        SET class = 'Second Class';
+    ELSEIF curr_marks BETWEEN 824 AND 725 THEN
+        SET class = 'Third Class';
+    ELSE
+        SET class = 'Failed';
+    END IF;
+
+    -- Assuming you want to call a hypothetical "place" function here
+    SET r = place(roll, curr_name, class);
+END$$
+
+DELIMITER ;
