@@ -1,0 +1,51 @@
+DELIMITER //
+
+CREATE PROCEDURE proc_fine(IN roll INT, IN bookName VARCHAR(20), IN returnDate DATE)
+BEGIN
+    DECLARE fine FLOAT;
+    DECLARE days INT;
+    DECLARE issuedate DATE;
+
+    -- Get the date of issue for the given roll
+    SELECT date_of_issue
+    INTO issuedate
+    FROM borrower
+    WHERE roll = roll;
+
+    -- Calculate the number of days between returnDate and issuedate
+    SELECT DATEDIFF(returnDate, issuedate)
+    INTO days;
+
+    -- Calculate fine based on the number of days overdue
+    IF days >= 15 AND days <= 30 THEN
+        SET fine = days * 5;
+        INSERT INTO fine_table (roll, return_date, fine_amount)
+        VALUES (roll, returnDate, fine);
+        
+        -- Update borrower status to "R" (Returned) if the book is returned within 30 days
+        UPDATE borrower
+        SET status = 'R'
+        WHERE roll = roll;
+    END IF;
+
+    IF days > 30 THEN
+        SET fine = days * 50;
+        INSERT INTO fine_table (roll, return_date, fine_amount)
+        VALUES (roll, returnDate, fine);
+        
+        -- Update borrower status to "R" (Returned) if the book is returned after 30 days
+        UPDATE borrower
+        SET status = 'R'
+        WHERE roll = roll;
+    END IF;
+
+    -- Check for invalid negative days (invalid returnDate)
+    IF days < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Please enter the appropriate date',
+            MYSQL_ERRNO = 3000;
+    END IF;
+END;
+//
+
+DELIMITER ;
