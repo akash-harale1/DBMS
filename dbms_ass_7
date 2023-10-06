@@ -1,0 +1,35 @@
+﻿
+
+MariaDB [te31417_db]>
+MariaDB [te31417_db]> create trigger after_library_insert after insert
+-> on Library
+-> for each row
+-> begin
+-> insert into fine values (new.roll_no, curdate(), NULL, new.book_name);
+-> end
+-> //
+
+
+create trigger after_library_update after update
+on Library
+for each row
+begin
+  update fine set book_name = new.book_name;
+end//
+
+
+create trigger before_library_delete before delete
+on Library
+for each row
+begin
+  insert into Library_Audit values (old.roll_no, old.stud_name, old.book_name, old.date_of_issue, now(), 'Delete (B)', old.price);
+end//
+
+
+create trigger after_library_delete after delete
+on Library
+for each row
+begin
+  delete from fine where roll_no = old.roll_no;
+end //
+
