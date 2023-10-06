@@ -1,0 +1,26 @@
+DELIMITER $$
+
+CREATE OR REPLACE PROCEDURE curse()
+BEGIN
+    DECLARE finished INT DEFAULT 0;
+    DECLARE curr_id INT;
+    DECLARE curr_name VARCHAR(20);
+    DECLARE temp_id INT;
+
+    DECLARE cur1 CURSOR FOR SELECT * FROM oldemp;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+    OPEN cur1;
+
+    WHILE finished = 0 DO
+        FETCH cur1 INTO curr_id, curr_name;
+
+        IF NOT EXISTS (SELECT id FROM newemp WHERE curr_id = newemp.id) THEN
+            INSERT INTO newemp VALUES (curr_id, curr_name);
+        END IF;
+    END WHILE;
+
+    CLOSE cur1;
+END$$
+
+DELIMITER ;
